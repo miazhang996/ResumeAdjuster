@@ -1,4 +1,5 @@
 org/example/resumeadjuster/controller/FileUploadController.class
+org/example/resumeadjuster/model/Experience.class
 org/example/resumeadjuster/config/CorsConfig.class
 org/example/resumeadjuster/ResumeAdjusterApplication.class
 org/example/resumeadjuster/config/CorsConfig$1.class
