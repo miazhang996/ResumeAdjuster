@@ -43,9 +43,10 @@ public class FileUploadController {
             //如果该文件夹不存在，则创建这个目录（支持递归创建）
             //mkdir() 只会创建最后一级目录，如果它的父目录不存在，会失败
             //mkdirs() 会递归地创建所有需要的父目录。
-
             String filePath = uploadDir + file.getOriginalFilename();
+            //获取上传文件的原始文件名，并与上传目录拼接，形成完整的文件目录
             file.transferTo(new File(filePath));
+            //
 
             return "文件上传成功: " + file.getOriginalFilename();
         } catch (IOException e) {
