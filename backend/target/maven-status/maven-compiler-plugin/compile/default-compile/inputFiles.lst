@@ -1,4 +1,9 @@
 /Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/ResumeAdjusterApplication.java
 /Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/config/CorsConfig.java
 /Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/controller/FileUploadController.java
+/Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/model/Education.java
 /Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/model/Experience.java
+/Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/repository/EducationRepository.java
+/Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/repository/ExperienceRepository.java
+/Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/service/EducationParser.java
+/Users/mianzhang/Desktop/WORK/Work/Website/ResumeAdjuster/ResumeAdjuster/backend/src/main/java/org/example/resumeadjuster/service/EducationService.java

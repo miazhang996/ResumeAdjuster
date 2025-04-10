@@ -1,5 +1,10 @@
-org/example/resumeadjuster/controller/FileUploadController.class
+org/example/resumeadjuster/service/EducationParser.class
+org/example/resumeadjuster/repository/EducationRepository.class
 org/example/resumeadjuster/model/Experience.class
 org/example/resumeadjuster/config/CorsConfig.class
-org/example/resumeadjuster/ResumeAdjusterApplication.class
+org/example/resumeadjuster/service/EducationService.class
 org/example/resumeadjuster/config/CorsConfig$1.class
+org/example/resumeadjuster/controller/FileUploadController.class
+org/example/resumeadjuster/model/Education.class
+org/example/resumeadjuster/ResumeAdjusterApplication.class
+org/example/resumeadjuster/repository/ExperienceRepository.class

@@ -34,10 +34,10 @@ public class Experience {
     private LocalDate endDate;
 
     // PostgreSQL 的 JSONB 类型，可以映射为 String 存 JSON 格式文本
-    @Column(name = "tech_stack", columnDefinition = "jsonb")
+    @Column(name = "tech_stack", columnDefinition = "TEXT")
     private String techStack;
 
-    @Column(name = "bullet_points", columnDefinition = "jsonb")
+    @Column(name = "bullet_points", columnDefinition = "TEXT")
     private String bulletPoints;
 
     // ----------- Getter & Setter -----------
