@@ -1,0 +1,46 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+
+# Java build output
+/out/
+target/
+build/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Maven
+.mvn/
+!/.mvn/wrapper/maven-wrapper.jar
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+build/
+
+# Node.js
+node_modules/
+
+# Temporary files
+*.swp
+*~
+*.tmp
+
+# VS Code
+.vscode/
+
+# Uploaded resumes or user files
+/uploads/
