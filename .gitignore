@@ -8,3 +8,7 @@ frontend/node_modules/
 backend/uploads/
 
 .idea/
+
+# 敏感凭据文件
+**/firebase-credentials.json
+**/target/classes/firebase-credentials.json
