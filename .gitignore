@@ -1,0 +1,8 @@
+# 系统文件
+.DS_Store
+
+# 前端依赖
+frontend/node_modules/
+
+# 后端上传文件
+backend/uploads/
