@@ -1,9 +1,9 @@
 package org.example.resumeadjuster.model;
-
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "education")
@@ -26,8 +26,8 @@ public class Education {
     @Column(name = "location", length = 200)
     private String location;
 
-    @Column(name = "program", length = 200)
-    private String program;
+    @Column(name = "major", length = 200) // ⬅️ 修改字段名
+    private String major;
 
     @Column(name = "start_date")
     private LocalDate startDate;
@@ -37,6 +37,9 @@ public class Education {
 
     @Column(name = "GPA")
     private Double GPA;
+
+    @OneToMany(mappedBy = "education", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Course> courses = new ArrayList<>();
 
     // -------- Getter & Setter ----------
     public Long getEducationId() { return educationId; }
@@ -54,8 +57,8 @@ public class Education {
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
-    public String getProgram() { return program; }
-    public void setProgram(String program) { this.program = program; }
+    public String getMajor() { return major; }
+    public void setMajor(String major) { this.major = major; }
 
     public LocalDate getStartDate() { return startDate; }
     public void setStartDate(LocalDate startDate) { this.startDate = startDate; }
@@ -65,4 +68,14 @@ public class Education {
 
     public Double getGPA() { return GPA; }
     public void setGPA(Double GPA) { this.GPA = GPA; }
+
+
+
+    public List<Course> getCourses() {
+        return courses;
+    }
+
+    public void setCourses(List<Course> courses) {
+        this.courses = courses;
+    }
 }

@@ -45,10 +45,10 @@ public class FileUploadController {
             file.transferTo(new File(filePath));
 
             // 2. 调用 Parser 解析教育经历（resumeId 暂定写死为 1）
-            Education education = educationService.parseEducationFromDocx(filePath, 1);
+            var educationList = educationService.parseEducationFromDocx(filePath, 1);
 
             // 3. 保存解析结果进数据库
-            educationRepository.save(education);
+            educationRepository.saveAll(educationList);
 
             return "教育经历解析并写入成功！文件名: " + file.getOriginalFilename();
         } catch (IOException e) {
