@@ -9,6 +9,8 @@
 
 # 忽略敏感配置文件（如 Firebase 认证密钥）
 /backend/src/main/resources/firebase-credentials.json
+/backend/src/main/resources/application.properties
 
 # 忽略后端上传文件目录
 /backend/uploads/
+
