@@ -7,13 +7,13 @@ import {getAuth} from 'firebase/auth';
 
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBJBQi6SHVPhg44WoZ1xpWCSDJODua1Xnk",
-    authDomain: "resumeadjuster-8fb0a.firebaseapp.com",
-    projectId: "resumeadjuster-8fb0a",
-    storageBucket: "resumeadjuster-8fb0a.firebasestorage.app",
-    messagingSenderId: "643083669027",
-    appId: "1:643083669027:web:5ba0444ec16b12f9d3ab96",
-    measurementId: "G-L2ZE6TDPGC"
+    apiKey: "AIzaSyC9dhfD0iOL6ed_KCUmqXx_VUouRvMDQZo",
+    authDomain: "resumeadjuster123.firebaseapp.com",
+    projectId: "resumeadjuster123",
+    storageBucket: "resumeadjuster123.firebasestorage.app",
+    messagingSenderId: "305698650713",
+    appId: "1:305698650713:web:89498fa1174490314a8f48",
+    measurementId: "G-EJ909VBQ5X"
 };
 
 const app=initializeApp(firebaseConfig);

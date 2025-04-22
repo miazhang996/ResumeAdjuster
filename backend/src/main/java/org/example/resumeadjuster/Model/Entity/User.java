@@ -1,8 +1,11 @@
 package org.example.resumeadjuster.Model.Entity;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Data;
+import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -10,12 +13,14 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 
 @Entity
 @Table(name="users")
 @Data
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
@@ -50,9 +55,31 @@ public class User {
     private OffsetDateTime lastLoginAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private Set<UserAuthProvider> authProviders = new HashSet<>();
 
 
+
+    @Getter(AccessLevel.NONE)
+    @JsonManagedReference
+    @JsonIgnore
+    private final Set<UserAuthProvider> authProviders = new HashSet<>();
+
+    // 自定义的安全getter方法 - 添加JsonIgnore
+    @JsonIgnore
+    public Set<UserAuthProvider> getAuthProviders() {
+        return authProviders != null ? new HashSet<>(authProviders) : new HashSet<>();
+    }
+
+    // 添加线程安全的修改方法
+
+    public synchronized void addAuthProvider(UserAuthProvider provider) {
+        authProviders.add(provider);
+        provider.setUser(this);
+    }
+
+    public synchronized void removeAuthProvider(UserAuthProvider provider) {
+        authProviders.remove(provider);
+        provider.setUser(null);
+    }
 
 
 }

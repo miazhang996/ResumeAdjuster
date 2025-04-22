@@ -1,14 +1,14 @@
-# 系统文件
-.DS_Store
+# 忽略所有 node_modules 文件夹（前端或其他子项目）
+**/node_modules/
 
-# 前端依赖
-frontend/node_modules/
-
-# 后端上传文件
-backend/uploads/
-
+# 忽略 IntelliJ IDEA 项目配置文件夹
 .idea/
 
-# 敏感凭据文件
-**/firebase-credentials.json
-**/target/classes/firebase-credentials.json
+# 忽略 Java Maven 编译输出目录
+**/target/
+
+# 忽略敏感配置文件（如 Firebase 认证密钥）
+/backend/src/main/resources/firebase-credentials.json
+
+# 忽略后端上传文件目录
+/backend/uploads/

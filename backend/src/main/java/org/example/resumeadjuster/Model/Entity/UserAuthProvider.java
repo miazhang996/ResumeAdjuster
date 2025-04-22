@@ -1,7 +1,7 @@
 package org.example.resumeadjuster.Model.Entity;
 import jakarta.persistence.*;
 import lombok.Data;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name="user_auth_providers")
@@ -14,6 +14,7 @@ public class UserAuthProvider {
 
     @ManyToOne(fetch=FetchType.LAZY)
     @JoinColumn(name="user_id",nullable = false)
+    @JsonBackReference
     private User user;
 
     @Column(name="provider",nullable = false,length = 50)
