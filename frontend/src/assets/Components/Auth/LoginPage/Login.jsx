@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Divider, Typography, Checkbox } from 'antd';
+import { Form, Input, Button, Divider, Typography, Checkbox,Alert } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
@@ -17,9 +17,10 @@ function Login() {
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const navigate = useNavigate();
+    const [loginError, setLoginError] = useState(null);
 
     const handleSignin = async (values) => {
-        const { email, password } = values;
+        const { email, password} = values;
         setLoading(true);
 
         try {
@@ -29,17 +30,9 @@ function Login() {
             console.error("SignIn failed: ", error);
             // 处理不同的错误情况
             if (error.response && error.response.status === 401) {
-                form.setFields([
-                    {
-                        name: "password",
-                        errors: ['Invalid email or password.']
-                    }
-                ]);
+                setLoginError('Invalid email or password.');
             } else {
-                form.setFields([{
-                    name: "email",
-                    errors: ['Login failed. Please try again later.']
-                }]);
+                setLoginError('Login failed. Please try again later.');
             }
         } finally {
             setLoading(false);
@@ -66,6 +59,19 @@ function Login() {
                     <FontAwesomeIcon icon={faUser} className="user-icon" />
                 </div>
                 <Title level={2} className={"sign-in-title"}>Sign in</Title>
+
+                {loginError && (
+                    <Alert
+                        message="Login Error"
+                        description={loginError}
+                        type="error"
+                        showIcon
+                        style={{ marginBottom: '20px' }}
+                        closable
+                        onClose={() => setLoginError(null)}
+                    />
+                )}
+
                 <Form
                     form={form}
                     name="sign-in-form"
@@ -84,6 +90,7 @@ function Login() {
                         <Input
                             placeholder="Email Address"
                             size="large"
+
                         />
                     </Form.Item>
 

@@ -1,5 +1,5 @@
-import React,{useState} from 'react';
-import {Form,Input,Button,Divider,Typography,Checkbox} from 'antd';
+import React,{useState,useEffect} from 'react';
+import {Form,Input,Button,Divider,Typography,Checkbox,Modal} from 'antd';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import AuthService from "../../../Services/AuthService.js";
@@ -17,14 +17,18 @@ function Signup(){
     const[loading,setLoading]=useState(false);
     const[googleLoading,setGoogleLoading]=useState(false);
     const navigate=useNavigate();
+    const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
     const handleSignup = async (values)=>{
         const {firstName,lastName,email,password} = values;
         setLoading(true);
 
         try{
+
             await AuthService.signup(firstName,lastName,email,password);
-            navigate('/login') // 跳转到login 页面
+            sessionStorage.setItem('registrationSuccess', 'true');
+            navigate('/login');
+
         }catch(error){
             console.error("SignUp failed: ",error);
             //处理不同的错误情况
@@ -52,6 +56,18 @@ function Signup(){
 
     };
 
+
+    useEffect(() => {
+        const registrationSuccess = sessionStorage.getItem('registrationSuccess');
+        if (registrationSuccess) {
+            message.success('Registration successful! Please log in.');
+            sessionStorage.removeItem('registrationSuccess');
+        }
+    }, []);
+
+
+
+
     // 处理 Google 登录
    const handleGoogleLogin=async ()=>{
        setGoogleLoading(true);
@@ -76,7 +92,8 @@ function Signup(){
                     form={form}
                     name="sign-up-form"
                     onFinish={handleSignup}
-                    layout="vertical">
+                    layout="vertical"
+                autoComplete="off">
                     <div className="name-row">
                         <Form.Item
                             name="firstName"
@@ -89,6 +106,7 @@ function Signup(){
                             <Input
                                 placeholder="First Name"
                                 size="large"
+
 
                             />
                         </Form.Item>
@@ -103,6 +121,7 @@ function Signup(){
                             <Input
                                 placeholder="Last Name"
                                 size="large"
+
 
                             />
                         </Form.Item>
@@ -123,6 +142,7 @@ function Signup(){
                             placeholder="Email Address"
                             size="large"
 
+
                         />
                     </Form.Item>
 
@@ -140,6 +160,7 @@ function Signup(){
                         <Input.Password
                             placeholder="Password"
                             size="large"
+
 
 
                         />
@@ -186,6 +207,10 @@ function Signup(){
 
 
             </div>
+
+
+
+
 
         </div>
 

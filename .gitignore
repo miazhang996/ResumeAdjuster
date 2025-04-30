@@ -14,3 +14,5 @@
 # 忽略后端上传文件目录
 /backend/uploads/
 
+
+.env

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Layout , Menu, Dropdown, Avatar, Space} from 'antd';
+import {Layout , Menu, Dropdown, Avatar, Space,Button} from 'antd';
 import {UserOutlined, LogoutOutlined, DownOutlined } from "@ant-design/icons";
 import {useNavigate} from "react-router-dom";
 import MenuDivider from "antd/es/menu/MenuDivider.js";
@@ -7,7 +7,7 @@ import MenuDivider from "antd/es/menu/MenuDivider.js";
 const {Header} =Layout
 
 
-function Nav(currentUser){
+function Nav({currentUser}){
     const navigate=useNavigate();
 
     function handleLogout(){
@@ -17,13 +17,35 @@ function Nav(currentUser){
 
     // get display name
     function getDisplayName(){
-        if(!currentUser) return null;
-        if(currentUser==='google'){
-            //google 登录显示首字母
-            return currentUser.firstName ? currentUser.firstName[0] :'U';
-        }else{
-            // email login
-            return currentUser.lastName || 'user';
+        // 添加详细的调试日志
+        console.log('GetDisplayName called with currentUser:', currentUser);
+
+        if(!currentUser) return 'U';
+
+        // 检查用户对象的所有属性
+        console.log('currentUser properties:', Object.keys(currentUser));
+
+        // 检查firstName和lastName
+        console.log('firstName:', currentUser.firstName);
+        console.log('lastName:', currentUser.lastName);
+        console.log('email:', currentUser.email);
+
+        // 检查是否是Google登录
+        // 根据你的API返回结构可能需要调整
+        if(currentUser.authProviders &&
+            Array.isArray(currentUser.authProviders) &&
+            currentUser.authProviders.some(p => p.provider === 'firebase' || p.provider === 'google')) {
+            return currentUser.firstName ? currentUser.firstName[0].toUpperCase() : 'G';
+        } else {
+            // 普通email登录
+            if(currentUser.firstName) {
+                return currentUser.firstName[0].toUpperCase();
+            } else if(currentUser.lastName) {
+                return currentUser.lastName[0].toUpperCase();
+            } else if(currentUser.email) {
+                return currentUser.email[0].toUpperCase();
+            }
+            return 'U';
         }
     }
 
@@ -58,6 +80,7 @@ function Nav(currentUser){
             Login
         </Button>
     );
+    console.log('Current user data:', currentUser);
 
     return (
         <Header style={{
