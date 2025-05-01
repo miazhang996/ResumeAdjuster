@@ -2,7 +2,7 @@ import React,{useState,useEffect} from 'react';
 import {Form,Input,Button,Divider,Typography,Checkbox,Modal,message} from 'antd';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
-import AuthService from "../../../Services/AuthService.js";
+import {useAuth} from "../../../../contexts/AuthContext.jsx";
 import { useNavigate } from 'react-router-dom';
 import '../../../Styles/Signup.css';
 
@@ -11,14 +11,15 @@ const {Title} = Typography;
 
 
 /*
-这里只是Sign up 页面实现， 所有的 API 逻辑都在 Services/AuthService.js
- */
+Sign up page implementation using AuthContext for authentication management
+*/
 function Signup(){
     const [form]=Form.useForm();
     const[loading,setLoading]=useState(false);
     const[googleLoading,setGoogleLoading]=useState(false);
     const navigate=useNavigate();
-    const [registrationSuccess, setRegistrationSuccess] = useState(false);
+
+    const {signup,googleLogin,refresherUserData}=useAuth();
 
     const handleSignup = async (values)=>{
         const {firstName,lastName,email,password} = values;
@@ -26,9 +27,8 @@ function Signup(){
 
         try{
 
-            await AuthService.signup(firstName,lastName,email,password);
-            sessionStorage.setItem('registrationSuccess', 'true');
-            navigate('/login');
+            await signup(firstName, lastName, email, password);
+            navigate('/login', { state: { registrationSuccess: true } });
 
         }catch(error){
             console.error("SignUp failed: ",error);
@@ -58,22 +58,12 @@ function Signup(){
     };
 
 
-    useEffect(() => {
-        const registrationSuccess = sessionStorage.getItem('registrationSuccess');
-        if (registrationSuccess) {
-            message.success('Registration successful! Please log in.');
-            sessionStorage.removeItem('registrationSuccess');
-        }
-    }, []);
-
-
-
-
     // 处理 Google 登录
    const handleGoogleLogin=async ()=>{
        setGoogleLoading(true);
        try{
-           await AuthService.googleLogin();
+           await googleLogin();
+           await refresherUserData();
            navigate('/upload');// 跳转到upload 页面
 
        }catch (error){
@@ -94,6 +84,7 @@ function Signup(){
                     name="sign-up-form"
                     onFinish={handleSignup}
                     layout="vertical"
+                    autoComplete="off"
                 >
                     <div className="name-row">
                         <Form.Item
@@ -107,6 +98,7 @@ function Signup(){
                             <Input
                                 placeholder="First Name"
                                 size="large"
+                                autoComplete="off"
 
 
                             />
@@ -122,6 +114,7 @@ function Signup(){
                             <Input
                                 placeholder="Last Name"
                                 size="large"
+                                autoComplete="off"
 
 
                             />
@@ -142,6 +135,7 @@ function Signup(){
                         <Input
                             placeholder="Email Address"
                             size="large"
+                            autoComplete="off"
 
 
                         />
@@ -161,7 +155,7 @@ function Signup(){
                         <Input.Password
                             placeholder="Password"
                             size="large"
-
+                            autoComplete="new-password"
 
 
                         />

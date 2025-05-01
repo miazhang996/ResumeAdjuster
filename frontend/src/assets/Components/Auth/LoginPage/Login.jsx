@@ -1,39 +1,52 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Divider, Typography, Checkbox,Alert } from 'antd';
+import React, { useState ,useEffect } from 'react';
+import { Form, Input, Button, Divider, Typography, Checkbox,Alert,message} from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
-import AuthService from "../../../Services/AuthService.js";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation  } from 'react-router-dom';
 import '../../../Styles/Login.css';
+import {useAuth} from "../../../../contexts/AuthContext.jsx";
+
 
 
 const { Title } = Typography;
 
 /*
-这里只是Login 页面实现， 所有的 API 逻辑都在 Services/AuthService.js
+Login page implementation using AuthContext for authentication managment
  */
-function Login({onLoginSuccess}) {
+function Login() {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
     const navigate = useNavigate();
     const [loginError, setLoginError] = useState(null);
+    const location = useLocation(); // 使用useLocation获取导航状态
+
+    // Use the auth context instead of direct AuthService calls
+    const { login, googleLogin, refresherUserData } = useAuth();
+
+    // 检查导航状态中是否有注册成功的消息
+    useEffect(() => {
+        if (location.state?.registrationSuccess) {
+            message.success('Registration successful! Please log in.');
+            // 清除状态，防止刷新页面时再次显示消息
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location, navigate]);
 
     const handleSignin = async (values) => {
         const { email, password} = values;
         setLoading(true);
 
         try {
-            const response = await AuthService.signin(email, password);
+            const response = await login(email,password);
             console.log("Login response:", response);
-            // 确保将用户数据传递给 onLoginSuccess
-            if (onLoginSuccess && response.user) {
-                onLoginSuccess(response.user);
-            }
+
+            // Refresh user data to ensure all components have the latest user info
+            await refresherUserData();
+
             navigate('/upload');
         } catch (error) {
-            // 错误处理保持不变
             console.error("SignIn failed: ", error);
             if (error.response && error.response.status === 401) {
                 setLoginError('Invalid email or password.');
@@ -49,10 +62,13 @@ function Login({onLoginSuccess}) {
     const handleGoogleLogin = async () => {
         setGoogleLoading(true);
         try {
-            await AuthService.googleLogin();
+            await googleLogin();
+            // Refresh user data to ensure all components have the latest user info
+            await refresherUserData();
             navigate('/upload');
         } catch (error) {
             console.error("Google login failed : ", error);
+            setLoginError('Google login failed. Please try again later.');
         } finally {
             setGoogleLoading(false);
         }

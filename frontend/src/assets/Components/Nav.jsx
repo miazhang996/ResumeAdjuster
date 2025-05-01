@@ -3,16 +3,18 @@ import {Layout , Menu, Dropdown, Avatar, Space,Button} from 'antd';
 import {UserOutlined, LogoutOutlined, DownOutlined } from "@ant-design/icons";
 import {useNavigate} from "react-router-dom";
 import MenuDivider from "antd/es/menu/MenuDivider.js";
-import AuthService from "../Services/AuthService.js";
+import {useAuth} from "../../contexts/AuthContext.jsx";
 
 const {Header} =Layout
 
 
-function Nav({currentUser}){
+function Nav(){
     const navigate=useNavigate();
+    // 使用useAuth hook 获取user 的state 和方法
+    const {currentUser,logout}=useAuth();
 
     function handleLogout(){
-        AuthService.logout();
+       logout();// 使用Context中的logout方法
         navigate('/login')
     }
 

@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {BrowserRouter as Router, Routes, Route, Navigate} from 'react-router-dom';
 
 // @ts-ignore
@@ -12,108 +12,66 @@ import Login from "./assets/Components/Auth/LoginPage/Login.jsx";
 import Signup from "./assets/Components/Auth/SignupPage/Signup.jsx";
 // @ts-ignore
 import Nav from "./assets/Components/Nav.jsx";
+// 导入AuthProvider
 // @ts-ignore
-import AuthService from "./assets/Services/AuthService.js";
+import { AuthProvider, useAuth } from "./contexts/AuthContext.jsx";
 
-function App() {
-    // Define state for the current user and loading status
-    const [currentUser, setCurrentUser] = useState<any>(null);
-    const [loading, setLoading] = useState<boolean>(true); // Set to true to show initial loading state
+// 创建一个包含受保护路由的组件
+// @ts-ignore
+function ProtectedRoute({ children }) {
+    const { currentUser, loading } = useAuth();
 
-    useEffect(() => {
-        // Function to initialize authentication state
-        const initializeAuth = async () => {
-            try {
-                // Check if user is authenticated based on token
-                if (AuthService.isAuthenticated()) {
-                    try {
-                        // First try to get user data from localStorage cache
-                        const cachedUser = localStorage.getItem('currentUser');
-                        if (cachedUser) {
-                            try {
-                                const userData = JSON.parse(cachedUser);
-                                console.log("User data from cache:", userData);
-                                setCurrentUser(userData);
-                                // We can still call API to validate/update user data, but UI won't be blocked
-                            } catch (e) {
-                                console.error("Error parsing cached user data:", e);
-                            }
-                        }
-
-                        // Always fetch latest data from API regardless of cache
-                        const userData = await AuthService.getCurrentUser();
-                        console.log("User data fetched from API:", userData);
-
-                        // Store in localStorage for next use
-                        localStorage.setItem('currentUser', JSON.stringify(userData));
-
-                        setCurrentUser(userData);
-                    } catch (userError) {
-                        console.error("Failed to fetch user data:", userError);
-                        // Clear authentication data
-                        AuthService.logout(); // Use service's logout instead of directly manipulating localStorage
-                        setCurrentUser(null);
-                    }
-                } else {
-                    console.log("No auth token found, user not authenticated");
-                    setCurrentUser(null);
-                }
-            } catch (error) {
-                console.error("Auth initialization error:", error);
-                setCurrentUser(null);
-            } finally {
-                setLoading(false);
-                console.log("Auth initialization completed");
-            }
-        };
-
-        // Call the initialization function
-        initializeAuth();
-    }, []);
-
-    // Handler for successful login - updates user state and cache
-    const handleLogin = (userData: any) => {
-        console.log("Login successful, setting user data:", userData);
-        setCurrentUser(userData);
-        // Ensure user data is saved to cache
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-    };
-
-    // Handler for logout - clears user state and cache
-    const handleLogout = () => {
-        AuthService.logout();
-        setCurrentUser(null);
-    };
-
-    // Show loading indicator while authentication is being initialized
+    // 如果正在加载，显示加载指示器
     if (loading) {
         return <div>Loading...</div>;
     }
 
-    return (
-        <Router>
-            <Routes>
-                {/* Public routes - accessible without authentication */}
-                <Route path="/signup" element={<Signup />} />
-                <Route path="/login" element={<Login onLoginSuccess={handleLogin} />} />
+    // 如果未认证，重定向到登录页面
+    if (!currentUser) {
+        return <Navigate to="/login" replace />;
+    }
 
-                {/* Routes that need navigation bar */}
-                <Route path="/upload" element={
+    // 已认证，显示子组件
+    return children;
+}
+
+function AppRoutes() {
+    return (
+        <Routes>
+            {/* 公共路由 - 无需认证可访问 */}
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* 需要认证的路由 */}
+            <Route path="/upload" element={
+                <ProtectedRoute>
                     <>
-                        <Nav currentUser={currentUser} onLogout={handleLogout} />
+                        <Nav />
                         <UploadedPage1 />
                     </>
-                } />
-                <Route path="/display" element={
+                </ProtectedRoute>
+            } />
+            <Route path="/display" element={
+                <ProtectedRoute>
                     <>
-                        <Nav currentUser={currentUser} onLogout={handleLogout} />
+                        <Nav />
                         <ResumeDisplay />
                     </>
-                } />
+                </ProtectedRoute>
+            } />
 
-                {/* Default route - redirects to signup */}
-                <Route path="/" element={<Navigate to="/signup" replace />} />
-            </Routes>
+            {/* 默认路由 - 重定向到注册页面 */}
+            <Route path="/" element={<Navigate to="/signup" replace />} />
+        </Routes>
+    );
+}
+
+function App() {
+    return (
+        <Router>
+            <AuthProvider>
+                <AppRoutes />
+            </AuthProvider>
         </Router>
     );
 }

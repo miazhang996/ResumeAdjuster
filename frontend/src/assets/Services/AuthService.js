@@ -349,13 +349,24 @@ const AuthService = {
 
     /**
      * Get current user information
-     * First checks localStorage cache, then falls back to API request
-     * @returns {Promise<Object>} User data object
+     * First checks localStorage cache, then falls back to API request if needed
+     * Optimized to work with Context API
+     * @returns {Promise<Object|null>} User data object or null if not authenticated
      */
     getCurrentUser: async () => {
         console.log("getCurrentUser called");
 
-        // First check local cache
+        // 首先检查是否有认证令牌
+        const token = getToken();
+        console.log("Token exists:", !!token);
+
+        // 如果没有令牌，直接返回null（未认证）
+        if (!token) {
+            console.log("No authentication token, user is not logged in");
+            return null;
+        }
+
+        // 检查本地缓存
         const cachedUser = localStorage.getItem('currentUser');
         console.log("Cached user data exists:", !!cachedUser);
 
@@ -370,16 +381,13 @@ const AuthService = {
             }
         }
 
-        // If no cache or parsing failed, get from API
+        // 如果没有缓存或解析失败，从API获取
         console.log("Fetching user data from API");
         try {
-            const token = getToken();
-            console.log("Token available for API request:", !!token);
-
             const response = await apiClient.get('/api/auth/user');
             console.log("User data from API:", response.data);
 
-            // Update cache
+            // 更新缓存
             if (response.data) {
                 console.log("Updating user data cache");
                 localStorage.setItem('currentUser', JSON.stringify(response.data));
@@ -392,6 +400,12 @@ const AuthService = {
             console.error("Error fetching user data from API:", error.message);
             if (error.response) {
                 console.error("API error details:", error.response.status, error.response.data);
+
+                // 如果是401错误，清除缓存
+                if (error.response.status === 401) {
+                    console.warn("401 Unauthorized, clearing user cache");
+                    localStorage.removeItem('currentUser');
+                }
             }
             throw error;
         }
