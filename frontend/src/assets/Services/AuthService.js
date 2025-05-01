@@ -1,68 +1,85 @@
-/*
-负责处理所有与用户认证相关的API 通信：
-1.用户register
-2. User login
-3. user log out
-4. 获取当前用户信息
-5. 认证状态管理
-6. google Oauth 认证
-
-该服务用axios 拦截器 自动为需要认证的请求添加JWT 令牌
-并统一处理未授权错误 401 ，实现自动log out
-
-Token 存储在浏览器的localstorage 中， 便于持久化session 状态
-Use stateless design pattern , 服务器不需要维护session信息。
+/**
+ * Authentication Service Module
+ * This service handles all authentication-related API communications:
+ * 1. User registration
+ * 2. User login
+ * 3. User logout
+ * 4. Current user information retrieval
+ * 5. Authentication state management
+ * 6. Google OAuth authentication
+ *
+ * This service uses axios interceptors to automatically add JWT tokens to authenticated requests
+ * and handles unauthorized errors (401) with automatic logout.
+ *
+ * Tokens are stored in browser localStorage for persistent session state.
+ * Follows stateless design pattern, server doesn't need to maintain session information.
  */
 
 import axios from 'axios';
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "firebase/auth";
 import {app} from'../Config/firebase.js';
 
+// Base API URL - uses environment variable or defaults to localhost
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
+// Check if code is running in browser environment
 const isBrowser = typeof window !== 'undefined' && window !== null;
 
-
+/**
+ * Retrieves the authentication token from localStorage
+ * @returns {string|null} The authentication token or null if not found
+ */
 const getToken = () => {
     if (isBrowser && window.localStorage) {
         try {
-            return window.localStorage.getItem('authToken');
+            const token = window.localStorage.getItem('authToken');
+            console.log("getToken called, token exists:", !!token);
+            return token;
         } catch (e) {
             console.error("Error accessing localStorage:", e);
             return null;
         }
     }
+    console.log("getToken called in non-browser environment");
     return null;
 };
 
+/**
+ * Stores the authentication token in localStorage
+ * @param {string} token - The JWT token to store
+ */
 const setToken = (token) => {
+    console.log("Setting token:", token ? "Token provided" : "No token provided");
     if (isBrowser && window.localStorage) {
         try {
             window.localStorage.setItem('authToken', token);
+            console.log("Token successfully saved to localStorage");
         } catch (e) {
             console.error("Error storing token in localStorage:", e);
         }
+    } else {
+        console.warn("Cannot set token: not in browser environment");
     }
 };
 
+/**
+ * Removes the authentication token from localStorage
+ */
 const removeToken = () => {
+    console.log("Removing token from localStorage");
     if (isBrowser && window.localStorage) {
         try {
             window.localStorage.removeItem('authToken');
+            console.log("Token successfully removed from localStorage");
         } catch (e) {
             console.error("Error removing token from localStorage:", e);
         }
+    } else {
+        console.warn("Cannot remove token: not in browser environment");
     }
 };
 
-
-
-
-
-
-
-
-// 创建一个axios instance ， 可以设置默认配置
+// Create an axios instance with default configuration
 const apiClient = axios.create({
     baseURL: API_URL,
     headers: {
@@ -70,43 +87,75 @@ const apiClient = axios.create({
     }
 });
 
-// 请求拦截器， 添加认证token 的header
+/**
+ * Request interceptor to add authorization token to headers
+ */
 apiClient.interceptors.request.use(
     (config) => {
         const token = getToken();
+        console.log("Request interceptor: URL =", config.url);
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+            console.log("Added token to request headers");
+        } else {
+            console.log("No token available for request");
         }
         return config;
     },
     (error) => {
+        console.error("Request interceptor error:", error);
         return Promise.reject(error);
     }
 );
 
-//响应拦截器，处理常见错误
+/**
+ * Response interceptor to handle common errors
+ * Specifically handles 401 unauthorized errors by clearing token and redirecting to login
+ */
 apiClient.interceptors.response.use(
     (response) => {
+        console.log("Response received:", response.status, response.config.url);
         return response;
     },
     (error) => {
-        //处理401 错误， 清除本地token 并重定向到登录页面
+        console.error("Response error:", error.message);
+        console.log("Response error details:", error.response ? {
+            status: error.response.status,
+            data: error.response.data,
+            url: error.config ? error.config.url : 'unknown'
+        } : 'No response details');
+
+        // Handle 401 unauthorized errors
         if (error.response && error.response.status === 401) {
+            console.warn("401 Unauthorized error detected, clearing token");
             removeToken();
             if (isBrowser) {
+                console.log("Redirecting to login page");
                 window.location.href = '/login';
             }
         }
         return Promise.reject(error);
     }
 );
-// 获取 firebase 认证实例
-const auth = isBrowser ? getAuth(app) : null;
-// 认证相关API 服务
-const AuthService = {
 
-    // 注册新用户
+// Get Firebase authentication instance (if in browser)
+const auth = isBrowser ? getAuth(app) : null;
+
+/**
+ * Authentication Service API
+ * Provides methods for user authentication and management
+ */
+const AuthService = {
+    /**
+     * Register a new user
+     * @param {string} firstName - User's first name
+     * @param {string} lastName - User's last name
+     * @param {string} email - User's email address
+     * @param {string} password - User's password
+     * @returns {Promise<Object>} Response data from the API
+     */
     signup: async (firstName, lastName, email, password) => {
+        console.log("Signup attempt for:", email);
         try {
             const response = await apiClient.post('/api/auth/signup', {
                 firstName,
@@ -114,134 +163,271 @@ const AuthService = {
                 email,
                 password
             });
-            // 如果后端返回JWT token, store it at localstorage
+            console.log("Signup successful, response:", response.data);
+
+            // Store JWT token if returned by the backend
             if (response.data.token) {
+                console.log("Token received from signup");
                 setToken(response.data.token);
+            } else {
+                console.warn("No token in signup response");
             }
             return response.data;
         } catch (error) {
+            console.error("Signup failed:", error.message);
+            if (error.response) {
+                console.error("Server response:", error.response.status, error.response.data);
+            }
             throw error;
         }
     },
 
-    // 用户登录
+    /**
+     * Authenticate user with email and password
+     * @param {string} email - User's email address
+     * @param {string} password - User's password
+     * @returns {Promise<Object>} Response data from the API including token and user info
+     */
     signin: async (email, password) => {
+        console.log("Login attempt for:", email);
         try {
+            console.log("Sending login request to:", API_URL + '/api/auth/login');
             const response = await apiClient.post('/api/auth/login', {
                 email,
                 password
             });
+
+            console.log("Login response:", response.data);
+
+            // Store token if returned by the backend
             if (response.data.token) {
+                console.log("Token received from login");
                 setToken(response.data.token);
+
+                // Store user data in localStorage
+                if (response.data.user) {
+                    console.log("User data received:", response.data.user);
+                    localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+                    console.log("User data saved to localStorage");
+                } else {
+                    console.warn("No user data in login response");
+                }
+            } else {
+                console.warn("No token in login response");
             }
+
             return response.data;
         } catch (error) {
+            console.error("Login failed:", error.message);
+            if (error.response) {
+                console.error("Server response:", error.response.status, error.response.data);
+            } else {
+                console.error("No server response (network error or CORS issue)");
+            }
             throw error;
         }
     },
 
-    // google login
+    /**
+     * Authenticate user with Google OAuth
+     * Uses Firebase for initial authentication, then exchanges Firebase token for backend JWT
+     * @returns {Promise<Object>} Response data from the API
+     */
     googleLogin: async () => {
+        console.log("Google login attempt");
         if (!isBrowser) {
+            console.error("Google login called in non-browser environment");
             throw new Error("Google login can only be performed in browser environment");
         }
         try {
-            // 确保auth不为null
+            // Ensure Firebase Auth is initialized
             if (!auth) {
+                console.error("Firebase Auth is not initialized");
                 throw new Error("Firebase Auth is not initialized");
             }
-            //1.使用firebase 进行google 认证
+
+            // 1. Use Firebase to authenticate with Google
+            console.log("Initiating Firebase popup for Google auth");
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
+            console.log("Google sign-in successful");
 
-            //2. 获取Firebase idToken
+            // 2. Get Firebase ID token
+            console.log("Getting Firebase ID token");
             const idToken = await result.user.getIdToken();
+            console.log("Firebase ID token received");
 
-            //3. 将Firebase Token 发送到backend , 获取自己的JWT
+            // 3. Send Firebase token to backend to get our own JWT
+            console.log("Sending ID token to backend");
             const response = await apiClient.post('/api/auth/google', idToken, {
                 headers: {
-                    'Content-Type': 'text/plain'  // 发送原始idToken
+                    'Content-Type': 'text/plain'  // Send raw idToken
                 }
             });
+            console.log("Backend response to Google auth:", response.data);
 
-            //存储自己的后端生成的JWT
+            // Store our backend-generated JWT
             if (response.data.token) {
-                localStorage.setItem('authToken', response.data.token);
+                console.log("JWT token received from backend");
+                setToken(response.data.token);
+
+                if (response.data.user) {
+                    console.log("User data received:", response.data.user);
+                    localStorage.setItem('currentUser', JSON.stringify(response.data.user));
+                }
+            } else {
+                console.warn("No token in Google auth response");
             }
+
             return response.data;
         } catch (error) {
-            console.error('Google Login error', error);
+            console.error('Google Login error:', error);
+            if (error.code) {
+                console.error('Firebase error code:', error.code);
+            }
+            if (error.response) {
+                console.error("Server response:", error.response.status, error.response.data);
+            }
             throw error;
         }
     },
 
-    // 用户 log out
+    /**
+     * Log out the current user
+     * Performs Firebase sign out (if applicable) and backend logout
+     * Clears local authentication data
+     * @returns {Promise<boolean>} True if logout successful
+     */
     logout: async () => {
+        console.log("Logout initiated");
         try {
-            // 获取当前token
             const token = getToken();
+            console.log("Current token exists:", !!token);
 
-            //1.调用Firebase 登出 （如果用户是通过firebase 登录的）
-            // 只在浏览器环境中执行Firebase登出
+            // 1. Firebase signout (if user logged in through Firebase)
             if (isBrowser && auth) {
+                console.log("Attempting Firebase sign out");
                 try {
                     await signOut(auth);
+                    console.log("Firebase sign out successful");
                 } catch (signOutError) {
                     console.warn("Firebase sign out failed:", signOutError);
                 }
             }
-            // 通知后端用户已登出
+
+            // 2. Notify backend about logout
             if (token) {
+                console.log("Notifying backend about logout");
                 try {
                     await apiClient.post('/api/auth/logout', null, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
                     });
+                    console.log("Backend logout successful");
                 } catch (err) {
-                    // 即使后端登出失败，我们也继续客户端的登出流程
-                    console.warn("Backend logout failed, continuing with client logout");
+                    console.warn("Backend logout failed:", err.message);
+                    console.log("Continuing with client logout");
                 }
+            } else {
+                console.log("No token to send to backend for logout");
             }
 
-            //3. 清除本地token
+            // 3. Clear local token and user data
+            console.log("Clearing local authentication data");
             removeToken();
+            localStorage.removeItem('currentUser');
+            console.log("Logout complete");
             return true;
         } catch (error) {
-            console.error("Log out error: ", error);
-            //即使发生错误，也要确保令牌被清除
+            console.error("Logout error:", error);
+            console.log("Ensuring token is removed despite error");
             removeToken();
             throw error;
         }
     },
 
-    // 获取当前用户信息
+    /**
+     * Get current user information
+     * First checks localStorage cache, then falls back to API request
+     * @returns {Promise<Object>} User data object
+     */
     getCurrentUser: async () => {
+        console.log("getCurrentUser called");
+
+        // First check local cache
+        const cachedUser = localStorage.getItem('currentUser');
+        console.log("Cached user data exists:", !!cachedUser);
+
+        if (cachedUser) {
+            try {
+                const userData = JSON.parse(cachedUser);
+                console.log("Using cached user data:", userData);
+                return userData;
+            } catch (e) {
+                console.error("Error parsing cached user data:", e);
+                console.log("Will try to fetch from API instead");
+            }
+        }
+
+        // If no cache or parsing failed, get from API
+        console.log("Fetching user data from API");
         try {
-            // 可以添加一个获取当前用户信息的API
-            // 这个可能需要在后端实现
+            const token = getToken();
+            console.log("Token available for API request:", !!token);
+
             const response = await apiClient.get('/api/auth/user');
             console.log("User data from API:", response.data);
+
+            // Update cache
+            if (response.data) {
+                console.log("Updating user data cache");
+                localStorage.setItem('currentUser', JSON.stringify(response.data));
+            } else {
+                console.warn("API returned empty user data");
+            }
+
             return response.data;
         } catch (error) {
+            console.error("Error fetching user data from API:", error.message);
+            if (error.response) {
+                console.error("API error details:", error.response.status, error.response.data);
+            }
             throw error;
         }
     },
 
-    // 检查用户是否已经验证
+    /**
+     * Check if user is authenticated based on token presence
+     * @returns {boolean} True if authenticated, false otherwise
+     */
     isAuthenticated: () => {
-        return !!getToken();
+        const token = getToken();
+        console.log("isAuthenticated check:", !!token);
+        return !!token;
     },
 
-    // 验证token是否有效
+    /**
+     * Validate a token with the backend
+     * @param {string} token - The token to validate
+     * @returns {Promise<boolean|Object>} Validation result
+     */
     validateToken: async (token) => {
+        console.log("validateToken called");
         try {
+            console.log("Sending token validation request");
             const response = await apiClient.get(`/api/auth/validate?token=${token}`);
+            console.log("Token validation response:", response.data);
             return response.data;
         } catch (error) {
+            console.error("Token validation failed:", error.message);
+            if (error.response) {
+                console.error("Validation error details:", error.response.status, error.response.data);
+            }
             return false;
         }
     }
 };
 
+// Export the Authentication Service
 export default AuthService;

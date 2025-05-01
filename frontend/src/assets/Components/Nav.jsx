@@ -3,6 +3,7 @@ import {Layout , Menu, Dropdown, Avatar, Space,Button} from 'antd';
 import {UserOutlined, LogoutOutlined, DownOutlined } from "@ant-design/icons";
 import {useNavigate} from "react-router-dom";
 import MenuDivider from "antd/es/menu/MenuDivider.js";
+import AuthService from "../Services/AuthService.js";
 
 const {Header} =Layout
 
@@ -11,7 +12,7 @@ function Nav({currentUser}){
     const navigate=useNavigate();
 
     function handleLogout(){
-        localStorage.removeItem('token')
+        AuthService.logout();
         navigate('/login')
     }
 

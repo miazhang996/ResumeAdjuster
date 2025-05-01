@@ -1,10 +1,11 @@
 import React,{useState,useEffect} from 'react';
-import {Form,Input,Button,Divider,Typography,Checkbox,Modal} from 'antd';
+import {Form,Input,Button,Divider,Typography,Checkbox,Modal,message} from 'antd';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faGoogle } from '@fortawesome/free-brands-svg-icons';
 import AuthService from "../../../Services/AuthService.js";
 import { useNavigate } from 'react-router-dom';
 import '../../../Styles/Signup.css';
+
 
 const {Title} = Typography;
 
@@ -93,7 +94,7 @@ function Signup(){
                     name="sign-up-form"
                     onFinish={handleSignup}
                     layout="vertical"
-                autoComplete="off">
+                >
                     <div className="name-row">
                         <Form.Item
                             name="firstName"

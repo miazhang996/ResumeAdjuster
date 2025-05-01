@@ -7,12 +7,13 @@ import AuthService from "../../../Services/AuthService.js";
 import { useNavigate } from 'react-router-dom';
 import '../../../Styles/Login.css';
 
+
 const { Title } = Typography;
 
 /*
 这里只是Login 页面实现， 所有的 API 逻辑都在 Services/AuthService.js
  */
-function Login() {
+function Login({onLoginSuccess}) {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
@@ -24,11 +25,16 @@ function Login() {
         setLoading(true);
 
         try {
-            await AuthService.signin(email, password);
-            navigate('/upload'); // 跳转到upload 页面
+            const response = await AuthService.signin(email, password);
+            console.log("Login response:", response);
+            // 确保将用户数据传递给 onLoginSuccess
+            if (onLoginSuccess && response.user) {
+                onLoginSuccess(response.user);
+            }
+            navigate('/upload');
         } catch (error) {
+            // 错误处理保持不变
             console.error("SignIn failed: ", error);
-            // 处理不同的错误情况
             if (error.response && error.response.status === 401) {
                 setLoginError('Invalid email or password.');
             } else {
