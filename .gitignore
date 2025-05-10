@@ -1,1 +1,40 @@
-backend/target/
+# === Java build artifacts ===
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# === Logs ===
+*.log
+
+# === OS system files ===
+.DS_Store
+Thumbs.db
+
+# === IntelliJ IDEA ===
+.idea/
+*.iml
+out/
+
+# === VS Code ===
+.vscode/
+
+# === Environment & Secrets ===
+.env
+application.properties
+*.key
+*.pem
+
+# === Maven ===
+.mvn/
+.settings/
+dependency-reduced-pom.xml
+
+# === Gradle ===
+.gradle/
+build/
+
+# === Node ===
+node_modules/
+
